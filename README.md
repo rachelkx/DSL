@@ -6,3 +6,12 @@ DataPrep aims to simplify data preparation tasks, including data cleaning and da
 ## **2. Syntax and Semantics
 
 
+## **3. Installation**
+```bash
+pip install -r requirements.txt
+```
+
+## **4. Tests**
+```bash
+pytest tests/test_parser.py
+```
