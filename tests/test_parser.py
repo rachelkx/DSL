@@ -3,9 +3,9 @@ from lib.parser import Parser
 from lark.exceptions import UnexpectedInput
 
 def nice_print(dsl_code, tree):
-    print("\n📌 DSL Code:")
+    print("DSL Code:")
     print(dsl_code)
-    print("\n🛠 Parsed AST:")
+    print("Parsed AST:")
     print(tree.pretty())
 
 parser = Parser()

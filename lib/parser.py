@@ -59,7 +59,8 @@ class Parser:
 
     def parse(self, dsl):
         return self.parser.parse(dsl)
-
+"""
+# move this to lib/interpreter.py
 # define the interpreter for the AST
     def execute(self, tree):
         if tree.data == "load":
@@ -71,17 +72,17 @@ class Parser:
         elif tree.data == "filter":
             source = self.execute(tree.children[0])
             condition = tree.children[1]
-            return f"FILTER({source}, {condition})"
+            return f"FILTER({condition})"
         elif tree.data == "groupby":
             source = self.execute(tree.children[0])
             columns = ", ".join(tree.children[1:])
-            return f"GROUP_BY({source}, {columns})"
+            return f"GROUP_BY({columns})"
         elif tree.data == "orderby":
             source = self.execute(tree.children[0])
             columns = ", ".join(tree.children[1:])
-            return f"ORDER_BY({source}, {columns})"
+            return f"ORDER_BY({columns})"
         return "UNKNOWN"
-
+"""
 
 # test parser
 if __name__ == "__main__":
