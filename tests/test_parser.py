@@ -3,16 +3,16 @@ from lib.parser import Parser
 from lark.exceptions import UnexpectedInput
 
 def nice_print(dsl_code, tree):
-    print("DSL Code:")
+    print("\nDSL Code:")
     print(dsl_code)
-    print("Parsed AST:")
+    print("\nParsed AST:")
     print(tree.pretty())
 
 parser = Parser()
 def test_load():
     dsl_code = "LOAD 'data.csv' AS users;"
     tree = parser.parse(dsl_code)
-    expected_ast = "load\n  'data.csv'\n  users"
+    expected_ast = "load_expr\n  'data.csv'\n  users"
     assert tree.pretty().strip() == expected_ast.strip()
 
 def test_select_with_filter():
@@ -92,3 +92,7 @@ def test_invalid_syntax():
     # test missing keyword FROM
     with pytest.raises(UnexpectedInput):
         parser.parse("SELECT name users;")
+
+    # test invalid aggregate function
+    with pytest.raises(UnexpectedInput):
+        parser.parse("SELECT INVALID_FUNC(*) FROM users;")
