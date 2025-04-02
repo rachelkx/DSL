@@ -2,18 +2,18 @@ import pandas as pd
 from lark import Tree, Token
 
 class SelectInterpreter:
-    def __init__(self, table):
-        self.table = table
+    def __init__(self, tables):
+        self.tables = tables
 
-    def execute(self, tree, interpreter):
+    def execute(self, tree):
         columns = self.execute_columns(tree.children[0])
         from_clause = tree.children[1]
         table_name = from_clause.children[0].value
 
-        if table_name not in self.table:
+        if table_name not in self.tables:
             raise ValueError(f"Table '{table_name}' not found. Load it first!")
         
-        df = self.table[table_name]
+        df = self.tables[table_name]
 
         # execute from_clause
         for clause in from_clause.children[1:]:
@@ -80,63 +80,40 @@ class SelectInterpreter:
 
 
     def execute_filter(self, tree, df):
-        child = tree.children[0]
-        if child.data == 'condition':
-            # deal with single condition
-            condition = self.execute_condition(child)
-        else:
-            # deal with nested conditions
-            condition = self.execute_conditions(child)
+        condition = self.execute_condition(tree.children[0])
         filtered_df = df.query(condition)
         return filtered_df
-
-
+    
     def execute_condition(self, tree):
-        if tree.data == "condition":
-            if len(tree.children) == 1 and isinstance(tree.children[0], Tree):
-                # deal with condition wrapped in parentheses
-                return self.execute_condition(tree.children[0])
+        if tree.data == "simple_condition":
+            col = tree.children[0].value
+            op = tree.children[1].value
+            val = tree.children[2].value
+            if not val.isdigit() and not val.startswith(("'", '"')):
+                val = f"'{val}'"
+            return f"{col} {op} {val}"
 
-            if len(tree.children) == 3:
-                if isinstance(tree.children[0], Token):
-                    # deal with simple comparison
-                    col = tree.children[0].value
-                    op = tree.children[1].value
-                    val = tree.children[2].value
-                    if not val.isdigit() and not val.startswith(("'", '"')):
-                        val = f"'{val}'"
-                    return f"{col} {op} {val}"
-                else:
-                    # deal with nested condition, like condition1 AND condition2
-                    return f"({self.execute_conditions(tree)})"
+        elif tree.data == "logical_condition":
+            left = self.execute_condition(tree.children[0])
+            lop_token = tree.children[1]
+            right = self.execute_condition(tree.children[2])
+            op = lop_token.value.upper()
+            if op == "AND":
+                return f"({left}) & ({right})"
+            elif op == "OR":
+                return f"({left}) | ({right})"
+            else:
+                raise ValueError(f"Unknown logical operator: {lop_token}")
 
         elif tree.data == "not":
-            # deal with NOT expression
-            not_cond = self.execute_condition(tree.children[0])
-            return f"~({not_cond})"
+            inner = self.execute_condition(tree.children[0])
+            return f"~({inner})"
+
+        elif tree.data == "condition":
+            # 括号括起来的 (condition)
+            return self.execute_condition(tree.children[0])
 
         raise ValueError("Invalid condition format")
-
-
-    
-    def execute_conditions(self, tree):
-        conditions = []
-        for child in tree.children:
-            if isinstance(child, Tree): 
-                conditions.append(self.execute_condition(child))
-
-            elif isinstance(child, Token) and child.type == "LOP":
-                # change logical operator to Python's bitwise operator
-                op = child.value.upper()
-                if op == "AND":
-                    conditions.append("&")
-                elif op == "OR":
-                    conditions.append("|")
-                else:
-                    raise ValueError(f"Invalid logical operator: {child.value}")
-
-        return " ".join(conditions)
-
 
 
     def execute_groupby(self, tree, df):

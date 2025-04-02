@@ -10,6 +10,7 @@ GRAMMAR = """
 
 ?expr : load_expr
       | select_expr
+      | clean_cmds
 
 load_expr : "LOAD"i STRING "AS"i TABLE_NAME ";"? 
 
@@ -28,12 +29,17 @@ agg_func : "COUNT"i -> count
 
 ?from_clause : TABLE_NAME (filter_clause | groupby_clause | orderby_clause)*
 
-filter_clause : "FILTER"i "(" conditions ")"
-?conditions : condition (LOP condition)*
-?condition : COL_NAME OP value 
-           | "NOT"i condition
-           | "(" conditions ")"
-OP : "=" | "<" | ">" | "<=" | ">=" | "!="
+filter_clause : "FILTER"i "(" condition ")"
+
+?condition: simple_condition
+          | condition LOP condition   -> logical_condition
+          | "NOT"i condition          -> not
+          | "(" condition ")"
+
+simple_condition: COL_NAME OP value
+
+
+OP : "==" | "<" | ">" | "<=" | ">=" | "!="
 LOP : "AND"i | "OR"i 
 ?value : NUMBER | STRING
 
@@ -44,6 +50,30 @@ orderby_clause : "ORDER BY"i order_columns
 order_columns : "(" order_column ("," order_column)* ")"
 order_column : COL_NAME ORDER?
 ORDER : "ASC"i | "DESC"i
+
+clean_cmds : fillna_cmd
+           | dropna_cmd
+           | filter_outliers_cmd
+           | normalize_cmd
+           | plot_cmd
+
+fillna_cmd : "FILL"i "NA"i TABLE_NAME COL_NAME "WITH"i fill_method ";"?
+fill_method : "mean"i | "median"i | "mode"i | NUMBER
+
+dropna_cmd : "DROP"i "NA"i TABLE_NAME ("ROWS"i | "COLUMNS"i) \
+            ("WHERE"i ("ALL"i | "ANY"i))? \
+            ("IN"i column ("," column)*)? ";"?
+
+filter_outliers_cmd : "FILTER"i "OUTLIERS"i TABLE_NAME COL_NAME ("WITH"i outlier_method)? ";"?
+outlier_method : "ZSCORE"i "(" NUMBER ")" | "IQR"i
+
+normalize_cmd : "NORMALIZE"i TABLE_NAME COL_NAME ("WITH"i normalize_method)? ";"?
+normalize_method : "MIN-MAX"i | "ZSCORE"i
+
+plot_cmd : "PLOT"i plot_columns "FROM"i TABLE_NAME "AS"i plot_type ";"?
+plot_columns : COL_NAME ("," COL_NAME)?
+plot_type : "histogram"i | "scatter"i | "box"i | "line"i
+
 
 STRING : /'[^']*'/ | /"[^"]*"/
 STAR : "*"
@@ -56,8 +86,6 @@ TABLE_NAME : CNAME
 %ignore WS
 """
 
-
-
 class Parser:
     def __init__(self):
         self.parser = lark.Lark(GRAMMAR, parser="lalr")
@@ -67,4 +95,4 @@ class Parser:
             tree = self.parser.parse(dsl)
             return tree
         except lark.LarkError as e:
-            raise UnexpectedInput(f"Error parsing DSL: {e}") from e
+            raise UnexpectedInput(f"DSL Parse Error: {e}") from e
