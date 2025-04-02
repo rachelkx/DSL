@@ -40,12 +40,12 @@ class PlotInterpreter:
         plt.style.use("default")  
         fig, ax = plt.subplots(figsize=(8, 5), facecolor="#f4f4f4") 
 
-        if plot_type.upper() in ["HIST", "HISTOGRAM"]:
+        if plot_type in ["HIST", "HISTOGRAM"]:
             if len(col_list) != 1:
                 raise ValueError("Histogram plot requires exactly one column.")
             df[col_list[0]].plot.hist(ax=ax, edgecolor="black", bins=10)  
 
-        elif plot_type.upper() == "SCATTER":
+        elif plot_type == "SCATTER":
             if len(col_list) != 2:
                 raise ValueError("Scatter plot requires exactly two columns.")
             df.plot.scatter(
@@ -53,7 +53,7 @@ class PlotInterpreter:
                 s=100, edgecolor="black", linewidth=0.8, alpha=0.8  
             )
 
-        elif plot_type.upper() == "BOX":
+        elif plot_type == "BOX":
             data = [df[col].dropna().values for col in col_list]
             ax.boxplot(
                 data,
@@ -66,7 +66,7 @@ class PlotInterpreter:
             ax.set_xticks(range(1, len(col_list) + 1))
             ax.set_xticklabels(col_list)
 
-        elif plot_type.upper() == "LINE":
+        elif plot_type == "LINE":
             if len(col_list) == 1:
                 df[col_list].plot.line(ax=ax)
             elif len(col_list) == 2:
@@ -77,7 +77,7 @@ class PlotInterpreter:
             raise ValueError(f"Unsupported plot type: {plot_type}")
 
         ax.set_title(f"{plot_type.capitalize()} Plot", fontsize=14)
-        if plot_type.upper() != "BOX":
+        if plot_type != "BOX":
             ax.set_xlabel(col_list[0], fontsize=12)
         if len(col_list) > 1:
             ax.set_ylabel(col_list[1], fontsize=12)
