@@ -2,6 +2,7 @@
 # used for data visualization and preparation
 
 import lark
+from lark import Tree, Token
 from lark.exceptions import UnexpectedInput
 
 # define the grammar for the DSL
@@ -90,9 +91,27 @@ class Parser:
     def __init__(self):
         self.parser = lark.Lark(GRAMMAR, parser="lalr")
 
+    def normalize_tree(self, tree):
+        # transform the tree to a more readable format:
+        # convert all Token('RULE', 'xxx') to str type rule name
+        if isinstance(tree, Tree):
+            if isinstance(tree.data, Token):
+                rule_name = tree.data.value 
+            else: 
+                rule_name = tree.data
+
+            # Recursively normalize all children
+            normalized_child = []
+            for child in tree.children:
+                normalized_child.append(self.normalize_tree(child))
+
+            return Tree(rule_name, normalized_child)
+        else:
+            return tree
+
     def parse(self, dsl):
         try:
             tree = self.parser.parse(dsl)
-            return tree
+            return self.normalize_tree(tree)
         except lark.LarkError as e:
-            raise UnexpectedInput(f"DSL Parse Error: {e}") from e
+            raise UnexpectedInput(f"DSL Parse Error: {e}") 

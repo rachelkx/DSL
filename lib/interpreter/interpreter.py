@@ -19,10 +19,10 @@ class Interpreter:
             if tree.data == "load_stmt":
                 return self.load_interpreter.execute(tree)
             elif tree.data == "select_stmt":
-                return self.select_interpreter.execute(tree, self)
+                return self.select_interpreter.execute(tree)
             elif tree.data == "clean_cmds":
-                return self.clean_interpreter.execute(tree, self)
+                return self.clean_interpreter.execute(tree)
             elif tree.data == "plot_cmd":
-                return self.plot_interpreter.execute(tree, self)
+                return self.plot_interpreter.execute(tree)
             else:
                 raise ValueError(f"Unknown operation: {tree.data}")

@@ -5,7 +5,6 @@ class LoadInterpreter:
     def __init__(self, table):
         self.table = table
 
-
     def execute(self, tree):
         file_name = tree.children[0].value.strip("'\"")
         table_name = tree.children[1].value
