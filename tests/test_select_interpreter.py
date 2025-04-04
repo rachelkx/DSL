@@ -24,7 +24,7 @@ Test Select Queries
 """
 def test_select_with_all_columns(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Token('STAR', '*')]),
+        Tree('select_columns', [Token('STAR', '*')]),
         Tree('from_clause', [Token('TABLE_NAME', 'users')])
     ])
     result_df = select_interpreter.execute(tree)
@@ -34,7 +34,7 @@ def test_select_with_all_columns(select_interpreter):
 
 def test_select_with_single_column(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [Token('TABLE_NAME', 'users')])
     ])
     result_df = select_interpreter.execute(tree)
@@ -44,9 +44,9 @@ def test_select_with_single_column(select_interpreter):
 
 def test_select_with_multiple_columns(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'name')]),
-            Tree('column', [Token('COL_NAME', 'age')])
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'name')]),
+            Tree('select_column', [Token('COL_NAME', 'age')])
         ]),
         Tree('from_clause', [Token('TABLE_NAME', 'users')])
     ])
@@ -57,7 +57,7 @@ def test_select_with_multiple_columns(select_interpreter):
 
 def test_select_with_agg(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
+        Tree('select_columns', [
             Tree('agg_expr', [
                 Tree('sum', []),
                 Tree('agg_param', [Token('COL_NAME', 'salary')])
@@ -76,7 +76,7 @@ Test Filter Queries
 """
 def test_select_with_filter(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
                 Tree('filter_clause', [
@@ -98,7 +98,7 @@ def test_select_with_filter(select_interpreter):
 
 def test_select_with_filter_not(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
                 Tree('filter_clause', [
@@ -122,7 +122,7 @@ def test_select_with_filter_not(select_interpreter):
 
 def test_select_with_multiple_filter(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
                 Tree('filter_clause', [
@@ -151,7 +151,7 @@ def test_select_with_multiple_filter(select_interpreter):
     assert "Peter" not in result_df["name"].values
 
     tree2 = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('filter_clause', [
@@ -179,8 +179,8 @@ def test_select_with_multiple_filter(select_interpreter):
 
 def test_select_with_compound_filter(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'name')])
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'name')])
         ]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
@@ -214,8 +214,8 @@ Test Group By Queries
 """
 def test_group_by(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'age')]),
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'age')]),
             Tree('agg_expr', [
                 Tree('count', []),
                 Tree('agg_param', [Token('STAR', '*')])
@@ -224,8 +224,8 @@ def test_group_by(select_interpreter):
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('groupby_clause', [
-                Tree('group_columns', [
-                    Tree('column', [Token('COL_NAME', 'age')])
+                Tree('columns', [
+                    Token('COL_NAME', 'age')
                 ])
             ])
         ])
@@ -237,8 +237,8 @@ def test_group_by(select_interpreter):
 
 def test_group_by_multiple_columns(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'age')]),
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'age')]),
             Tree('agg_expr', [
                 Tree('count', []),
                 Tree('agg_param', [Token('STAR', '*')])
@@ -247,9 +247,9 @@ def test_group_by_multiple_columns(select_interpreter):
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('groupby_clause', [
-                Tree('group_columns', [
-                    Tree('column', [Token('COL_NAME', 'age')]),
-                    Tree('column', [Token('COL_NAME', 'name')])
+                Tree('columns', [
+                    Token('COL_NAME', 'age'),
+                    Token('COL_NAME', 'name')
                 ])
             ])
         ])
@@ -264,7 +264,7 @@ Test Order By Queries
 """
 def test_order_by(select_interpreter):
     tree1 = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('orderby_clause', [
@@ -281,7 +281,7 @@ def test_order_by(select_interpreter):
     assert result_df1.iloc[0]["name"] == "Alice"  
 
     tree2 = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('orderby_clause', [
@@ -300,7 +300,7 @@ def test_order_by(select_interpreter):
 
 def test_order_by_multiple_columns(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [Tree('column', [Token('COL_NAME', 'name')])]),
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('orderby_clause', [
@@ -326,7 +326,7 @@ Test Compound Queries
 """
 def test_select_with_agg_filter(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
+        Tree('select_columns', [
             Tree('agg_expr', [
                 Tree('count', []),
                 Tree('agg_param', [Token('STAR', '*')])
@@ -354,8 +354,8 @@ Test Complex Query
 """
 def test_complex_query(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'name')]),
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'name')]),
             Tree('agg_expr', [
                 Tree('count', []),
                 Tree('agg_param', [Token('STAR', '*')])
@@ -381,9 +381,9 @@ def test_complex_query(select_interpreter):
                     ])
                 ]),
             Tree('groupby_clause', [
-                Tree('group_columns', [
-                    Tree('column', [Token('COL_NAME', 'name')]),
-                    Tree('column', [Token('COL_NAME', 'age')])
+                Tree('columns', [
+                    Token('COL_NAME', 'name'),
+                    Token('COL_NAME', 'age')
                 ])
             ]),
             Tree('orderby_clause', [
@@ -403,14 +403,14 @@ def test_complex_query(select_interpreter):
 
 def test_invalid_group_by(select_interpreter):
     tree = Tree('select_stmt', [
-        Tree('columns', [
-            Tree('column', [Token('COL_NAME', 'name')])
+        Tree('select_columns', [
+            Tree('select_column', [Token('COL_NAME', 'name')])
         ]),
         Tree('from_clause', [
             Token('TABLE_NAME', 'users'),
             Tree('groupby_clause', [
-                Tree('group_columns', [
-                    Tree('column', [Token('COL_NAME', 'age')])
+                Tree('columns', [
+                    Token('COL_NAME', 'age')
                 ])
             ])
         ])

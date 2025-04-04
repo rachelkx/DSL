@@ -1,8 +1,15 @@
 from lark import Token
+import pandas as pd
+
 
 class CleanInterpreter:
     def __init__(self, tables):
         self.tables = tables
+
+    def _get_table(self, table_name):
+        if table_name not in self.tables:
+            raise ValueError(f"Table '{table_name}' not found. Load it first!")
+        return self.tables[table_name]
 
     def execute(self, tree):
         if tree.data == "fillna_cmd":
@@ -13,6 +20,14 @@ class CleanInterpreter:
             return self.execute_filter_outliers(tree)
         elif tree.data == "normalize_cmd":
             return self.execute_normalize(tree)
+        elif tree.data == "remove_str_in_numeric_cmd":
+            return self.execute_clean_remove_str_in_numeric(tree)
+        elif tree.data == "remove_num_in_nonnumeric_cmd":
+            return self.execute_clean_remove_num_in_nonnumeric(tree)
+        elif tree.data == "drop_row_col_cmd":
+            return self.execute_drop_row_col(tree)
+        elif tree.data == "replace_cell_cmd":
+            return self.execute_replace_cell(tree)
         else:
             raise ValueError(f"Unknown clean commands: {tree.data}")
 
@@ -21,7 +36,7 @@ class CleanInterpreter:
         col = tree.children[1].value
         method = tree.children[2]
 
-        df = self.tables[table_name]
+        df = self._get_table(table_name)
         if not isinstance(method, Token):
             raise ValueError("Invalid fill method: must be a token")
 
@@ -46,7 +61,7 @@ class CleanInterpreter:
 
     def execute_dropna(self, tree):
         table_name = tree.children[0].value 
-        df = self.tables[table_name]
+        df = self._get_table(table_name)
 
         # set default values
         axis = 0
@@ -90,10 +105,75 @@ class CleanInterpreter:
         self.tables[table_name] = result
 
 
+    def execute_clean_remove_str_in_numeric(self, tree):
+        table_name = tree.children[0].value
+        df = self._get_table(table_name)
+        if len(tree.children) > 1:
+            # specified columns
+            cols_node = tree.children[1]
+            cols = []
+            for col in cols_node.children:
+                if isinstance(col, Token):
+                    cols.append(col.value)
+
+        else:
+            # if no columns specified, apply to all numeric columns
+            cols = df.select_dtypes(include='number').columns
+
+        for col in cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        self.tables[table_name] = df.dropna(subset=cols, how='any')
+
+    def execute_clean_remove_num_in_nonnumeric(self, tree):
+        table_name = tree.children[0].value
+        df = self._get_table(table_name)
+        if len(tree.children) > 1:
+            cols_node = tree.children[1]
+            cols = [col.value for col in cols_node.children if isinstance(col, Token)]
+        else:
+            cols = [col for col in df.columns if not pd.api.types.is_numeric_dtype(df[col])]
+
+        for col in cols:
+            df = df[~df[col].apply(lambda x: isinstance(x, (int, float)))]
+        self.tables[table_name] = df
+
+    def execute_drop_row_col(self, tree):
+        drop_target = tree.children[0]
+        table_name = tree.children[-1].value
+        df = self._get_table(table_name)
+
+        if drop_target.data == "row":
+            row_index = int(drop_target.children[0].value)
+            df = df.drop(index=row_index)
+        elif drop_target.data == "column":
+            col_name = drop_target.children[0].value
+            df = df.drop(columns=col_name)
+        else:
+            raise ValueError("DROP must specify ROW or COLUMN")
+
+        self.tables[table_name] = df
+
+    def execute_replace_cell(self, tree):
+        table_name = tree.children[0].value
+        row_index = int(tree.children[1].value)
+        col_name = tree.children[2].value
+        val_node = tree.children[3]
+
+        df = self._get_table(table_name)
+
+        if val_node.type == "NUMBER":
+            val = float(val_node.value) if "." in val_node.value else int(val_node.value)
+        else:
+            val = val_node.value.strip("'")
+
+        df.at[row_index, col_name] = val
+        self.tables[table_name] = df
+
+
     def execute_filter_outliers(self, tree):
         table_name = tree.children[0].value 
         col = tree.children[1].value
-        df = self.tables[table_name]
+        df = self._get_table(table_name)
 
         # default outlier detection method
         method = "iqr"
@@ -130,7 +210,7 @@ class CleanInterpreter:
     def execute_normalize(self, tree):
         table_name = tree.children[0].value
         col = tree.children[1].value
-        df = self.tables[table_name]
+        df = self._get_table(table_name)
 
         # default normalization method
         method = "MINMAX" 
