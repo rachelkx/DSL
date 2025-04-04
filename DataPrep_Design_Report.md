@@ -51,7 +51,8 @@ LoadStatement ::= "LOAD" STRING "AS" Identifier
 ```
 SelectStatement ::= "SELECT" Columns "FROM" FromClause  
 Columns ::= "*" | Column ("," Column)*
-Column ::= Identifier | AggExpression 
+Column ::= Identifier | AggExpression
+
 AggExpression ::= AggFunction "(" AggParam ")"
 AggFunction ::= "COUNT" | "SUM" | "AVG" | "MIN" | "MAX"
 AggParam ::= Identifier | "*"
@@ -59,7 +60,8 @@ AggParam ::= Identifier | "*"
 
 #### Selects with Filters, Group Bys, Order Bys
 ```
-FromClause ::= Identifier (FilterClause | GroupByClause | OrderByClause)* 
+FromClause ::= Identifier (FilterClause | GroupByClause | OrderByClause)*
+
 FilterClause ::= "FILTER" "(" Condition ")"
 Condition ::= SimpleCondition
             | Condition LogicalOp Condition
@@ -68,9 +70,11 @@ Condition ::= SimpleCondition
 SimpleCondition ::= Identifier ComparisonOp Value 
 LogicalOp ::= "AND" | "OR"
 ComparisonOp ::= "==" | "<" | ">" | "<=" | ">=" | "!="
-Value ::= STRING | NUMBER 
+Value ::= STRING | NUMBER
+
 GroupByClause ::= "GROUP BY" GroupColumns
-GroupColumns ::= "(" Identifier ("," Identifier)* ")" 
+GroupColumns ::= "(" Identifier ("," Identifier)* ")"
+
 OrderByClause ::= "ORDER BY" OrderColumns
 OrderColumns ::= "(" OrderColumn ("," OrderColumn)* ")"
 OrderColumn ::= Identifier OrderDirection
@@ -231,6 +235,6 @@ Note: Q1 is the 25th percentile of col, Q3 is 75th percentile, and IQR is Q3 - Q
 ---
 
 ## 5. Design Considerations
-The DSL currently only supports **single-table operations**, I use a dictionary structure for two reasons:
-- Most DSL queries require referencing a table name (e.g. `SELECT ... FROM table_name`). Using a dictionary allows the interpreter to check if a table exists before executing operations.
-- The use of a dictionary allows future extension to support **multi-table operations**（such as joins） without changing the current structure.
+Although the DSL currently only supports **single-table operations**, a dictionary structure is used for the environment variable for two main reasons:
+- Most DSL queries require referencing a table name (e.g. `SELECT ... FROM table_name`). Using a dictionary allows the interpreter to check if a table exists before executing queries.
+- The use of a dictionary allows future extension to support **multi-table operations** (such as joins) without changing the current structure.
