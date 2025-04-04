@@ -16,9 +16,9 @@ class Interpreter:
             return tree.value
 
         if isinstance(tree, Tree):
-            if tree.data == "load_expr":
+            if tree.data == "load_stmt":
                 return self.load_interpreter.execute(tree)
-            elif tree.data == "select_expr":
+            elif tree.data == "select_stmt":
                 return self.select_interpreter.execute(tree, self)
             elif tree.data == "clean_cmds":
                 return self.clean_interpreter.execute(tree, self)

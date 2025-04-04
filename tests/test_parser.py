@@ -12,7 +12,7 @@ parser = Parser()
 def test_load():
     dsl_code = "LOAD 'data.csv' AS users;"
     tree = parser.parse(dsl_code)
-    expected_ast = "load_expr\n  'data.csv'\n  users"
+    expected_ast = "load_stmt\n  'data.csv'\n  users"
     assert tree.pretty().strip() == expected_ast.strip()
 
 def test_select_with_filter():

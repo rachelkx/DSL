@@ -8,7 +8,8 @@ data = {
     'id': [1, 2, 3, 4, 5],
     'name': ['Rachel', 'Alice', 'Kristy', 'Peter', 'Xavier'],
     'age': [24, 20, None, 36, None],
-    'salary': [1000000, 60000, 75000, 56000, 88000]
+    'salary': [1000000, 60000, 75000, 56000, 88000],
+    'occupation': [None, 'engineer', 'doctor', 'teacher', 'engineer'],
 }
 df_users = pd.DataFrame(data)
 
@@ -20,12 +21,25 @@ def test_fillna_mean(clean_interpreter):
     tree = Tree('fillna_cmd', [
         Token('TABLE_NAME', 'users'),
         Token('COL_NAME', 'age'),
-        Token('METHOD', 'mean')
+        Token('MEAN', 'mean')
     ])
     clean_interpreter.execute(tree)
     df = clean_interpreter.tables['users']
     assert df['age'].isnull().sum() == 0
     assert df['age'][2] == pytest.approx((24 + 20 + 36) / 3)
+
+def test_fillna_string(clean_interpreter):
+    tree = Tree('fillna_cmd', [
+        Token('TABLE_NAME', 'users'),
+        Token('COL_NAME', 'occupation'),
+        Token('STRING', 'student') 
+    ])
+
+    clean_interpreter.execute(tree)
+    df = clean_interpreter.tables['users']
+    # print(df)
+    assert df['name'].isnull().sum() == 0
+    assert df['occupation'][0] == 'student'
 
 def test_dropna_rows(clean_interpreter):
     tree = Tree('dropna_cmd', [
@@ -35,7 +49,7 @@ def test_dropna_rows(clean_interpreter):
     clean_interpreter.execute(tree)
     df = clean_interpreter.tables['users']
     assert df.isnull().sum().sum() == 0
-    assert len(df) == 3 
+    assert len(df) == 2
 
 def test_filter_outliers_zscore(clean_interpreter):
     tree = Tree('filter_outliers_cmd', [

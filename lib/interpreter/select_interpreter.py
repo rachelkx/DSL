@@ -110,7 +110,7 @@ class SelectInterpreter:
             return f"~({inner})"
 
         elif tree.data == "condition":
-            # 括号括起来的 (condition)
+            # condition wrapped by parentheis
             return self.execute_condition(tree.children[0])
 
         raise ValueError("Invalid condition format")
@@ -159,7 +159,6 @@ class SelectInterpreter:
             for col in normal_cols:
                 if col not in group_cols:
                     raise ValueError(f"Column '{col}' must appear in GROUP BY clause or be used in an aggregate function.")
-
 
         if agg_exprs:
             # handle groupby

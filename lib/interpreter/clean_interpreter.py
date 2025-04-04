@@ -22,21 +22,26 @@ class CleanInterpreter:
         method = tree.children[2]
 
         df = self.tables[table_name]
-        if isinstance(method, Token):
-            method = method.value.upper()
+        if not isinstance(method, Token):
+            raise ValueError("Invalid fill method: must be a token")
 
-            if method == "MEAN":
-                value = df[col].mean()
-            elif method == "MEDIAN":
-                value = df[col].median()
-            elif method == "MODE":
-                # may be multiple modes, take the first one
-                value = df[col].mode().iloc[0] 
-            else:
-                # fillna with a constant value if specified
-                value = float(method) 
+        method_type = method.type.upper()
+        method_value = method.value
 
-            df[col] = df[col].fillna(value)
+        if method_type == "MEAN":
+            fill_value = df[col].mean()
+        elif method_type == "MEDIAN":
+            fill_value = df[col].median()
+        elif method_type == "MODE":
+            fill_value = df[col].mode().iloc[0]
+        elif method_type == "NUMBER":
+            fill_value = float(method_value)
+        elif method_type == "STRING":
+            fill_value = str(method_value)
+        else:
+            raise ValueError(f"Unsupported fill method: {method_value}")
+
+        df[col] = df[col].fillna(fill_value)
 
 
     def execute_dropna(self, tree):

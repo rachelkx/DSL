@@ -8,13 +8,14 @@ from lark.exceptions import UnexpectedInput
 GRAMMAR = """
 ?start : expr
 
-?expr : load_expr
-      | select_expr
+?expr : load_stmt
+      | select_stmt
       | clean_cmds
+      | plot_cmd
 
-load_expr : "LOAD"i STRING "AS"i TABLE_NAME ";"? 
+load_stmt : "LOAD"i STRING "AS"i TABLE_NAME ";"? 
 
-select_expr : "SELECT"i columns "FROM"i from_clause ";"?
+select_stmt : "SELECT"i columns "FROM"i from_clause ";"?
 
 columns : STAR | column ("," column)*
 column : COL_NAME | agg_expr
@@ -55,10 +56,9 @@ clean_cmds : fillna_cmd
            | dropna_cmd
            | filter_outliers_cmd
            | normalize_cmd
-           | plot_cmd
 
 fillna_cmd : "FILL"i "NA"i TABLE_NAME COL_NAME "WITH"i fill_method ";"?
-fill_method : "mean"i | "median"i | "mode"i | NUMBER
+fill_method : "mean"i | "median"i | "mode"i | NUMBER | STRING
 
 dropna_cmd : "DROP"i "NA"i TABLE_NAME ("ROWS"i | "COLUMNS"i) \
             ("WHERE"i ("ALL"i | "ANY"i))? \
@@ -72,7 +72,7 @@ normalize_method : "MIN-MAX"i | "ZSCORE"i
 
 plot_cmd : "PLOT"i plot_columns "FROM"i TABLE_NAME "AS"i plot_type ";"?
 plot_columns : COL_NAME ("," COL_NAME)?
-plot_type : "histogram"i | "scatter"i | "box"i | "line"i
+plot_type : ("hist"i | "histogram"i) | "scatter"i | "box"i | "line"i
 
 
 STRING : /'[^']*'/ | /"[^"]*"/
