@@ -37,7 +37,7 @@ class SelectInterpreter:
         for child in tree.children:
             if isinstance(child, Token) and child.type == "STAR":
                 return "*"
-            elif isinstance(child, Tree) and child.data == "column":
+            elif isinstance(child, Tree) and child.data == "select_column":
                 # return a list of columns if multiple columns are selected
                 columns_list.append(self.execute_column(child))  
             elif isinstance(child, Tree) and child.data == "agg_expr":
@@ -80,18 +80,32 @@ class SelectInterpreter:
 
 
     def execute_filter(self, tree, df):
-        condition = self.execute_condition(tree.children[0])
-        filtered_df = df.query(condition)
+        cond = self.execute_condition(tree.children[0])
+        try:
+            filtered_df = df.query(cond)
+        except TypeError as e:
+            raise TypeError(f"Invalid filter condition: {e}") from None
+
         return filtered_df
-    
+
+
     def execute_condition(self, tree):
         if tree.data == "simple_condition":
             col = tree.children[0].value
             op = tree.children[1].value
             val = tree.children[2].value
-            if not val.isdigit() and not val.startswith(("'", '"')):
+
+            try:
+                float(val)
+                is_val_numeric = True
+            except ValueError:
+                is_val_numeric = False
+
+            if not is_val_numeric and not val.startswith(("'", '"')):
                 val = f"'{val}'"
+
             return f"{col} {op} {val}"
+
 
         elif tree.data == "logical_condition":
             left = self.execute_condition(tree.children[0])
@@ -117,11 +131,20 @@ class SelectInterpreter:
 
 
     def execute_groupby(self, tree, df):
-        columns = self.execute_columns(tree.children[0])
-        # save groupby columns for later use
-        self._groupby_columns = columns
+        # extract the list of COL_NAME tokens from the 'columns' subtree
+        columns_node = tree.children[0]  # This is the Tree('columns', [...])
+        group_cols = []
+
+        for child in columns_node.children:
+            if isinstance(child, Token) and child.type == "COL_NAME":
+                group_cols.append(child.value)
+
+        # save the column names for later use in aggregation
+        self._groupby_columns = group_cols
+
         # do not perform aggregation here, as it will be handled in apply_column_selected
         return df
+
 
 
     def execute_orderby(self, tree, df):

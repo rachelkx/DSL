@@ -16,10 +16,10 @@ GRAMMAR = """
 
 load_stmt : "LOAD"i STRING "AS"i TABLE_NAME ";"? 
 
-select_stmt : "SELECT"i columns "FROM"i from_clause ";"?
+select_stmt : "SELECT"i select_columns "FROM"i from_clause ";"?
 
-columns : STAR | column ("," column)*
-column : COL_NAME | agg_expr
+select_columns : STAR | select_column ("," select_column)*
+select_column : COL_NAME | agg_expr
 
 agg_expr : agg_func "(" agg_param ")"
 agg_param: COL_NAME | STAR
@@ -29,7 +29,7 @@ agg_func : "COUNT"i -> count
          | "MIN"i -> min
          | "MAX"i -> max
 
-?from_clause : TABLE_NAME (filter_clause | groupby_clause | orderby_clause)*
+from_clause : TABLE_NAME (filter_clause | groupby_clause | orderby_clause)*
 
 filter_clause : "FILTER"i "(" condition ")"
 
@@ -45,8 +45,8 @@ OP : "==" | "<" | ">" | "<=" | ">=" | "!="
 LOP : "AND"i | "OR"i 
 ?value : NUMBER | STRING
 
-groupby_clause : "GROUP BY"i group_columns
-group_columns : "(" COL_NAME ("," COL_NAME)* ")"
+groupby_clause : "GROUP BY"i columns
+columns : "(" COL_NAME ("," COL_NAME)* ")"
 
 orderby_clause : "ORDER BY"i order_columns
 order_columns : "(" order_column ("," order_column)* ")"
@@ -55,6 +55,10 @@ ORDER : "ASC"i | "DESC"i
 
 clean_cmds : fillna_cmd
            | dropna_cmd
+           | remove_str_in_numeric_cmd
+           | remove_num_in_nonnumeric_cmd
+           | drop_row_col_cmd
+           | replace_cell_cmd
            | filter_outliers_cmd
            | normalize_cmd
 
@@ -63,7 +67,17 @@ fill_method : "mean"i | "median"i | "mode"i | NUMBER | STRING
 
 dropna_cmd : "DROP"i "NA"i TABLE_NAME ("ROWS"i | "COLUMNS"i) \
             ("WHERE"i ("ALL"i | "ANY"i))? \
-            ("IN"i column ("," column)*)? ";"?
+            ("IN"i columns)? ";"?
+
+
+remove_str_in_numeric_cmd : "CLEAN"i "NUMERIC"i TABLE_NAME columns "REMOVE"i "STRINGS"i ";"?
+remove_num_in_nonnumeric_cmd : "CLEAN"i "NONNUMERIC"i TABLE_NAME columns "REMOVE"i "NUMBERS"i ";"?
+
+drop_row_col_cmd : "DROP"i ("ROW"i INT | "COLUMN"i COL_NAME) "FROM"i TABLE_NAME ";"?
+
+replace_cell_cmd : "REPLACE"i TABLE_NAME "ROW"i INT "COL"i COL_NAME "WITH"i value ";"?
+
+
 
 filter_outliers_cmd : "FILTER"i "OUTLIERS"i TABLE_NAME COL_NAME ("WITH"i outlier_method)? ";"?
 outlier_method : "ZSCORE"i "(" NUMBER ")" | "IQR"i
@@ -83,6 +97,7 @@ TABLE_NAME : CNAME
 
 %import common.CNAME
 %import common.NUMBER
+%import common.INT
 %import common.WS
 %ignore WS
 """
