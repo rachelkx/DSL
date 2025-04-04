@@ -34,7 +34,6 @@ Many users lack programming skills but need to perform common data preprocessing
 
 ### 4.1 Formal Syntax
 
-#### Program Structure
 ```
 Program ::= Statement+
 Statement ::= LoadStatement
