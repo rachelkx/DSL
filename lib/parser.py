@@ -16,7 +16,7 @@ GRAMMAR = """
 
 load_stmt : "LOAD"i STRING "AS"i TABLE_NAME ";"? 
 
-select_stmt : "SELECT"i select_columns "FROM"i from_clause ";"?
+select_stmt : "SELECT"i select_columns "FROM"i from_clause ("AS" TABLE_NAME)? ";"?
 
 select_columns : STAR | select_column ("," select_column)*
 select_column : COL_NAME | agg_expr
@@ -63,20 +63,22 @@ clean_cmds : fillna_cmd
            | normalize_cmd
 
 fillna_cmd : "FILL"i "NA"i TABLE_NAME COL_NAME "WITH"i fill_method ";"?
-fill_method : "mean"i | "median"i | "mode"i | NUMBER | STRING
+fill_method : "mean"i     -> mean
+            | "median"i   -> median
+            | "mode"i     -> mode
+            | NUMBER
+            | STRING
 
-dropna_cmd : "DROP"i "NA"i TABLE_NAME ("ROWS"i | "COLUMNS"i) \
+dropna_cmd : "DROP"i "NA"i TABLE_NAME (ROW | COLUMN) \
             ("WHERE"i ("ALL"i | "ANY"i))? \
             ("IN"i columns)? ";"?
 
+remove_str_in_numeric_cmd : "CLEAN"i "NUMERIC"i TABLE_NAME (COL_NAME | columns) "REMOVE"i "STRINGS"i ";"?
+remove_num_in_nonnumeric_cmd : "CLEAN"i "NONNUMERIC"i TABLE_NAME (COL_NAME | columns) "REMOVE"i "NUMBERS"i ";"?
 
-remove_str_in_numeric_cmd : "CLEAN"i "NUMERIC"i TABLE_NAME columns "REMOVE"i "STRINGS"i ";"?
-remove_num_in_nonnumeric_cmd : "CLEAN"i "NONNUMERIC"i TABLE_NAME columns "REMOVE"i "NUMBERS"i ";"?
+drop_row_col_cmd : "DROP"i (ROW INT | COLUMN COL_NAME) FROM TABLE_NAME ";"?
 
-drop_row_col_cmd : "DROP"i ("ROW"i INT | "COLUMN"i COL_NAME) "FROM"i TABLE_NAME ";"?
-
-replace_cell_cmd : "REPLACE"i TABLE_NAME "ROW"i INT "COL"i COL_NAME "WITH"i value ";"?
-
+replace_cell_cmd : "REPLACE"i TABLE_NAME ROW INT COLUMN COL_NAME "WITH"i value ";"?
 
 
 filter_outliers_cmd : "FILTER"i "OUTLIERS"i TABLE_NAME COL_NAME ("WITH"i outlier_method)? ";"?
@@ -85,13 +87,17 @@ outlier_method : "ZSCORE"i "(" NUMBER ")" | "IQR"i
 normalize_cmd : "NORMALIZE"i TABLE_NAME COL_NAME ("WITH"i normalize_method)? ";"?
 normalize_method : "MIN-MAX"i | "ZSCORE"i
 
-plot_cmd : "PLOT"i plot_columns "FROM"i TABLE_NAME "AS"i plot_type ";"?
-plot_columns : COL_NAME ("," COL_NAME)?
-plot_type : ("hist"i | "histogram"i) | "scatter"i | "box"i | "line"i
+plot_cmd : "PLOT"i (COL_NAME | columns) "FROM"i TABLE_NAME "AS"i PLOT_TYPE ";"?
+PLOT_TYPE : ("HIST"i | "HISTOGRAM"i) | "SCATTER"i | "BOX"i | "LINE"i | "BAR"i
 
 
 STRING : /'[^']*'/ | /"[^"]*"/
 STAR : "*"
+ROW: /ROW/i
+COLUMN: /COLUMN/i
+FROM: /FROM/i
+
+
 COL_NAME : CNAME
 TABLE_NAME : CNAME
 

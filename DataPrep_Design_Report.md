@@ -50,8 +50,8 @@ LoadStatement ::= "LOAD" STRING "AS" Identifier
 #### Select Statement
 ```
 SelectStatement ::= "SELECT" Columns "FROM" FromClause  
-Columns ::= "*" | Column ("," Column)*
-Column ::= Identifier | AggExpression
+SelectColumns ::= "*" | SelectColumn ("," SelectColumn)*
+SelectColumn ::= Identifier | AggExpression
 
 AggExpression ::= AggFunction "(" AggParam ")"
 AggFunction ::= "COUNT" | "SUM" | "AVG" | "MIN" | "MAX"
@@ -72,8 +72,8 @@ LogicalOp ::= "AND" | "OR"
 ComparisonOp ::= "==" | "<" | ">" | "<=" | ">=" | "!="
 Value ::= STRING | NUMBER
 
-GroupByClause ::= "GROUP BY" GroupColumns
-GroupColumns ::= "(" Identifier ("," Identifier)* ")"
+GroupByClause ::= "GROUP BY" Columns
+Columns ::= "(" Identifier ("," Identifier)* ")"
 
 OrderByClause ::= "ORDER BY" OrderColumns
 OrderColumns ::= "(" OrderColumn ("," OrderColumn)* ")"
@@ -85,6 +85,10 @@ OrderDirection ::= "ASC" | "DESC"
 ```
 CleanCommand ::= FillNACommand
                | DropNACommand
+               | RemoveStrInNumericCommand
+               | RemoveNumInNonNumericCommand
+               | DropRowOrColumnCommand
+               | ReplaceCellCommand
                | FilterOutliersCommand
                | NormalizeCommand
 
@@ -93,7 +97,15 @@ FillMethod ::= "MEAN" | "MEDIAN" | "MODE" | NUMBER | STRING
 
 DropNACommand ::= "DROP NA" Identifier ("ROWS" | "COLUMNS")
                   ["WHERE" ("ALL" | "ANY")]
-                  ["IN" Column ("," Column)*] 
+                  ["IN" "(" Identifier ("," Identifier)* ")"]
+
+RemoveStrInNumericCommand ::= "CLEAN Numeric" Identifier (Identifier | Columns) "REMOVE STRINGS"
+
+RemoveNumInNonNumericCommand ::= "CLEAN NonNumeric" Identifier (Identifier | Columns) "REMOVE NUMBERS"
+
+DropRowOrColumnCommand ::= "DROP" ("ROW" INT | "COLUMN" Identifier) "FROM" Identifier
+
+ReplaceCellCommand ::= "REPLACE" Identifier "ROW" INT "COLUMN" Identifier "WITH" Value
 
 FilterOutliersCommand ::= "FILTER OUTLIERS" Identifier Identifier
                           ["WITH" OutlierMethod] 
@@ -108,7 +120,7 @@ NormalizeMethod ::= "MIN-MAX" | "ZSCORE"
 ```
 PlotCommand ::= "PLOT" PlotColumns "FROM" Identifier "AS" PlotType 
 PlotColumns ::= Identifier ("," Identifier)?
-PlotType ::= ("HIST" | "HISTOGRAM") | "SCATTER" | "BOX" | "LINE"
+PlotType ::= "HIST" | "HISTOGRAM" | "SCATTER" | "BOX" | "LINE" | "BAR"
 ```
 
 #### Notes
@@ -197,6 +209,32 @@ Note:
 
 ⟦ DROP NA T ROWS ⟧(Env)  
 ⇒ Env[T] = Env[T].dropna()
+
+---
+
+##### Clean Numeric/Non-numeric Values From Non-numeric/Numeric Columns
+⟦ CLEAN NUMERIC T col REMOVE STRINGS ⟧(Env)
+⇒ Env[T][col] = pd.to_numeric(Env[T][col], errors='coerce')
+⇒ Env[T] = Env[T].dropna(subset=[col])
+
+⟦ CLEAN NONNUMERIC T col REMOVE NUMBERS ⟧(Env)
+⇒ Env[T] = Env[T][~Env[T][col].apply(lambda x: isinstance(x, (int, float)))]
+
+---
+
+##### Drop Row/Column
+⟦ DROP ROW i FROM T ⟧(Env)
+⇒ Env[T] = Env[T].drop(index=i)
+
+⟦ DROP COLUMN col FROM T ⟧(Env)
+⇒ Env[T] = Env[T].drop(columns=col)
+
+---
+
+##### Replace with Value
+
+⟦ REPLACE T ROW i COLUMN col WITH val ⟧(Env)
+⇒ Env[T].at[i, col] = val
 
 ---
 
