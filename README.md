@@ -31,6 +31,10 @@ interpreter.interpret(tree)
 
 ## **5. Running Tests**
 ```
-python DSL_benchmark.py
+pytest
 ```
 
+## **6.Running Benchmark**
+```
+python DSL_benchmark.py
+```
