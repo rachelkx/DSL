@@ -401,6 +401,21 @@ def test_complex_query(select_interpreter):
     assert "count" in result_df.columns
     assert 24 in result_df["age"].values
 
+
+def test_creates_new_table(select_interpreter):
+    # The AS Token will be ignored by lark
+    tree = Tree('select_stmt', [
+        Tree('select_columns', [Tree('select_column', [Token('COL_NAME', 'name')])]),
+        Tree('from_clause', [Token('TABLE_NAME', 'users')]),
+        Token('TABLE_NAME', 'young_users')
+    ])
+
+    result_df = select_interpreter.execute(tree)
+    assert 'young_users' in select_interpreter.tables
+    new_df = select_interpreter.tables['young_users']
+    assert "name" in new_df.columns
+    assert "Rachel" in new_df["name"].values
+
 def test_invalid_group_by(select_interpreter):
     tree = Tree('select_stmt', [
         Tree('select_columns', [

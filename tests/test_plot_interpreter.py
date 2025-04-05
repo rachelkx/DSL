@@ -10,52 +10,59 @@ def sample_table():
         'age': [25, 30, 35, 40, 45],
         'height': [160, 165, 170, 175, 180],
         'weight': [55, 60, 65, 70, 75],
+        'category': ['A', 'B', 'A', 'C', 'B']
     })
     return {'people': df.copy()}
 
 def test_histogram_plot(monkeypatch, sample_table):
-    # use monkeypatch to prevent plt.show() from displaying the plot
-    monkeypatch.setattr(plt, "show", lambda: None)
-    
+    # monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'age'),
         Token('TABLE_NAME', 'people'),
-        Token('PLOT_TYPE', 'histogram')
+        Token('PLOT_TYPE', 'HISTOGRAM')
     ])
     interpreter.execute(tree)
 
 def test_scatter_plot(monkeypatch, sample_table):
-    monkeypatch.setattr(plt, "show", lambda: None)
-
+    # monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'height'),
         Token('COL_NAME', 'weight'),
         Token('TABLE_NAME', 'people'),
-        Token('PLOT_TYPE', 'scatter')
+        Token('PLOT_TYPE', 'SCATTER')
     ])
     interpreter.execute(tree)
 
 def test_box_plot(monkeypatch, sample_table):
-    monkeypatch.setattr(plt, "show", lambda: None)
-
+    # monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'height'),
         Token('TABLE_NAME', 'people'),
-        Token('PLOT_TYPE', 'box')
+        Token('PLOT_TYPE', 'BOX')
     ])
     interpreter.execute(tree)
 
 def test_line_plot_two_columns(monkeypatch, sample_table):
-    monkeypatch.setattr(plt, "show", lambda: None) 
+    # monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'age'),
         Token('COL_NAME', 'weight'),
         Token('TABLE_NAME', 'people'),
-        Token('PLOT_TYPE', 'line')
+        Token('PLOT_TYPE', 'LINE')
     ])
     interpreter.execute(tree)
 
+def test_bar_plot(monkeypatch, sample_table):
+    # monkeypatch.setattr(plt, "show", lambda: None)
+
+    interpreter = PlotInterpreter(sample_table)
+    tree = Tree('plot_cmd', [
+        Token('COL_NAME', 'category'),
+        Token('TABLE_NAME', 'people'),
+        Token('PLOT_TYPE', 'BAR')
+    ])
+    interpreter.execute(tree)

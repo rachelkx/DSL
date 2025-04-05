@@ -1,20 +1,19 @@
 import matplotlib.pyplot as plt
-from lark import Tree, Token
+import pandas as pd
+from lark import Token, Tree
 
-class PlotInterpreter:
+class PlotInterpreter():
     def __init__(self, table):
         self.table = table
 
     def execute(self, tree):
-        if tree.data == "plot_cmd":
-            return self.execute_plot(tree)
-
-    def execute_plot(self, tree):
         col_list = []
         table_name = None
         plot_type = None
 
-        # parse the parameters for the plot command
+        # define the set of valid plot_type values
+        PLOT_TYPES = {"HIST", "HISTOGRAM", "SCATTER", "BOX", "LINE"}
+
         for child in tree.children:
             if isinstance(child, Token):
                 if child.type == "COL_NAME":
@@ -25,12 +24,21 @@ class PlotInterpreter:
                     plot_type = child.value.upper()
                 else:
                     raise ValueError(f"Unknown token type: {child.type}")
+            
+            elif isinstance(child, Tree):
+                if child.data == "columns":
+                    for token in child.children:
+                        if isinstance(token, Token) and token.type == "COL_NAME":
+                            col_list.append(token.value)
+                else:
+                    raise ValueError(f"Unknown tree type: {child.data}")
+
             else:
                 raise ValueError(f"Unknown child type: {type(child)}")
-            
+
         if not table_name or not plot_type:
             raise ValueError("Missing required parameters: table_name or plot_type.")
-           
+
         if table_name not in self.table:
             raise ValueError(f"Table '{table_name}' not found.")
 
@@ -73,6 +81,14 @@ class PlotInterpreter:
                 df.plot.line(x=col_list[0], y=col_list[1], ax=ax)
             else:
                 raise ValueError("Line plot supports only one or two columns.")
+            
+        elif plot_type == "BAR":
+            if len(col_list) != 1:
+                raise ValueError("Bar plot only supports one column.")
+            if not pd.api.types.is_object_dtype(df[col_list[0]]) and not pd.api.types.is_categorical_dtype(df[col_list[0]]):
+                raise TypeError(f"Bar plot requires a categorical (string-like) column, got {df[col_list[0]].dtype}")
+            df[col_list[0]].value_counts().plot.bar(ax=ax, edgecolor="black")
+            plt.xticks(rotation=45, ha='right', fontsize=10)
         else:
             raise ValueError(f"Unsupported plot type: {plot_type}")
 

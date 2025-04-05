@@ -10,6 +10,7 @@ class Interpreter:
         self.load_interpreter = LoadInterpreter(self.table)
         self.select_interpreter = SelectInterpreter(self.table)
         self.clean_interpreter = CleanInterpreter(self.table)
+        self.plot_interpreter = PlotInterpreter(self.table)
 
     def interpret(self, tree):
         if isinstance(tree, Token):

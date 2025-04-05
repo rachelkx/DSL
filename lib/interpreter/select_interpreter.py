@@ -30,6 +30,13 @@ class SelectInterpreter:
         else:
             result_df = self.apply_column_selected(columns, df)
 
+        # check for optional 'AS TABLE_NAME' at the end
+        if len(tree.children) == 3 and isinstance(tree.children[-1], Token) and tree.children[-1].type == "TABLE_NAME":
+            new_table_name = tree.children[-1].value
+            self.tables[new_table_name] = result_df
+            return None
+
+
         return result_df
 
     def execute_columns(self, tree):
