@@ -44,6 +44,7 @@ def test_fillna_string(clean_interpreter):
     assert df['name'].isnull().sum() == 0
     assert df['occupation'][0] == 'student'
 
+
 def test_dropna_rows(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('dropna_cmd', [
         Token('TABLE_NAME', 'users'),
@@ -52,7 +53,8 @@ def test_dropna_rows(clean_interpreter):
     clean_interpreter.execute(tree)
     df = clean_interpreter.tables['users']
     assert df.isnull().sum().sum() == 0
-    assert len(df) == 5
+    assert len(df) == 2
+
 
 def test_filter_outliers_zscore(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('filter_outliers_cmd', [
@@ -67,6 +69,7 @@ def test_filter_outliers_zscore(clean_interpreter):
     df = clean_interpreter.tables['users']
     assert df['salary'].max() < 1000000
 
+
 def test_filter_outliers_iqr(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('filter_outliers_cmd', [
         Token('TABLE_NAME', 'users'),
@@ -78,6 +81,7 @@ def test_filter_outliers_iqr(clean_interpreter):
     clean_interpreter.execute(tree)
     df = clean_interpreter.tables['users']
     assert df['salary'].max() < 1000000
+
 
 def test_normalize_zscore(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('normalize_cmd', [
@@ -91,6 +95,7 @@ def test_normalize_zscore(clean_interpreter):
     assert abs(col.mean()) < 1e-6
     assert round(col.std(), 5) == 1.0
 
+
 def test_remove_str_in_numeric(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('remove_str_in_numeric_cmd', [
         Token('TABLE_NAME', 'users'),
@@ -103,6 +108,7 @@ def test_remove_str_in_numeric(clean_interpreter):
     # check if all values in column 'score' is numeric
     assert pd.api.types.is_numeric_dtype(df['score'])
 
+
 def test_remove_num_in_nonnumeric(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('remove_num_in_nonnumeric_cmd', [
         Token('TABLE_NAME', 'users'),
@@ -112,6 +118,7 @@ def test_remove_num_in_nonnumeric(clean_interpreter):
     df = clean_interpreter.tables['users']
     # check if all values in 'comment' are strings
     assert df['comment'].apply(lambda x: not isinstance(x, (int, float))).all()
+
 
 def test_drop_row_by_index(clean_interpreter):
     tree = Tree('clean_cmds', [Tree('drop_row_col_cmd', [

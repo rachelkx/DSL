@@ -15,7 +15,7 @@ def sample_table():
     return {'people': df.copy()}
 
 def test_histogram_plot(monkeypatch, sample_table):
-    # monkeypatch.setattr(plt, "show", lambda: None)
+    monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'age'),
@@ -25,7 +25,7 @@ def test_histogram_plot(monkeypatch, sample_table):
     interpreter.execute(tree)
 
 def test_scatter_plot(monkeypatch, sample_table):
-    # monkeypatch.setattr(plt, "show", lambda: None)
+    monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'height'),
@@ -36,7 +36,7 @@ def test_scatter_plot(monkeypatch, sample_table):
     interpreter.execute(tree)
 
 def test_box_plot(monkeypatch, sample_table):
-    # monkeypatch.setattr(plt, "show", lambda: None)
+    monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'height'),
@@ -46,7 +46,7 @@ def test_box_plot(monkeypatch, sample_table):
     interpreter.execute(tree)
 
 def test_line_plot_two_columns(monkeypatch, sample_table):
-    # monkeypatch.setattr(plt, "show", lambda: None)
+    monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'age'),
@@ -57,8 +57,7 @@ def test_line_plot_two_columns(monkeypatch, sample_table):
     interpreter.execute(tree)
 
 def test_bar_plot(monkeypatch, sample_table):
-    # monkeypatch.setattr(plt, "show", lambda: None)
-
+    monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
         Token('COL_NAME', 'category'),

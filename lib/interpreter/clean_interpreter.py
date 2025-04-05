@@ -32,6 +32,8 @@ class CleanInterpreter:
         method = tree.children[2] 
 
         df = self.tables[table_name]
+        df = df.copy() 
+        
         if isinstance(method, Tree):
             method_name = method.data
             # only check numeric dtype if it's a statistical method
@@ -58,7 +60,8 @@ class CleanInterpreter:
         else:
             raise ValueError("Invalid fill method format")
 
-        df[col] = df[col].fillna(fill_value)
+        df.loc[:, col] = df[col].fillna(fill_value)
+        self.tables[table_name] = df
         return df
 
 
