@@ -15,6 +15,7 @@ def sample_table():
     return {'people': df.copy()}
 
 def test_histogram_plot(monkeypatch, sample_table):
+    # monkeypatch to prevent plt.show() from displaying the plot
     monkeypatch.setattr(plt, "show", lambda: None)
     interpreter = PlotInterpreter(sample_table)
     tree = Tree('plot_cmd', [
