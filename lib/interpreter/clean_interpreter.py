@@ -68,6 +68,7 @@ class CleanInterpreter:
     def execute_dropna(self, tree):
         table_name = tree.children[0].value 
         df = self.tables[table_name]
+        df = df.copy() 
 
         # set default values
         axis = 0
@@ -118,6 +119,7 @@ class CleanInterpreter:
             raise ValueError(f"Table '{table_name}' not found. Load it first!")
 
         df = self.tables[table_name]
+        df = df.copy() 
 
         if len(tree.children) > 1:
             col_info = tree.children[1]
@@ -143,6 +145,7 @@ class CleanInterpreter:
             raise ValueError(f"Table '{table_name}' not found. Load it first!")
 
         df = self.tables[table_name]
+        df = df.copy() 
 
         if len(tree.children) > 1:
             col_info = tree.children[1]
@@ -169,6 +172,7 @@ class CleanInterpreter:
             raise ValueError(f"Table '{table_name}' not found. Load it first!")
 
         df = self.tables[table_name]
+        df = df.copy() 
 
         if drop_type_token.type == "ROW":
             row_index = int(value_token.value)
@@ -193,6 +197,7 @@ class CleanInterpreter:
             raise ValueError(f"Table '{table_name}' not found. Load it first!")
 
         df = self.tables[table_name]
+        df = df.copy() 
 
         if row_index not in df.index:
             raise IndexError(f"Row index {row_index} does not exist in table '{table_name}'")
@@ -212,6 +217,7 @@ class CleanInterpreter:
         table_name = tree.children[0].value 
         col = tree.children[1].value
         df = self.tables[table_name]
+        df = df.copy() 
 
         # default outlier detection method
         method = "iqr"
@@ -251,6 +257,7 @@ class CleanInterpreter:
         table_name = tree.children[0].value
         col = tree.children[1].value
         df = self.tables[table_name]
+        df = df.copy() 
 
         # default normalization method
         method = "MINMAX" 
